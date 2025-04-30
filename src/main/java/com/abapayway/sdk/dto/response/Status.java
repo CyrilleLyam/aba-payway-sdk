@@ -6,8 +6,6 @@ public class Status {
     private String message;
     private String tranId;
 
-    // Getters and Setters
-
     public String getCode() {
         return code;
     }
