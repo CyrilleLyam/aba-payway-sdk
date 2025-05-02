@@ -1,11 +1,11 @@
 server:
-  port: 3000
+  port: ${PORT}
 
 spring:
   application:
     name: ABA PayWay SDK Integration
 
 payway:
-  merchant-id: ec450134
-  api-key: 3ad2d78b1606127a4238cbb3e2b7e6baa7c4d90c
-  api-url: https://checkout-sandbox.payway.com.kh/
+  merchant-id: ${MERCHANT_ID}
+  api-key: ${API_KEY}
+  api-url: ${API_URL}
