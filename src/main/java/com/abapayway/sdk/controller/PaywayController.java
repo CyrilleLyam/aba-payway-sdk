@@ -54,20 +54,4 @@ public class PaywayController {
         }
     }
 
-    @GetMapping("/account-details")
-    public ResponseEntity<String> accountDetails() throws Exception {
-        paymentService.accountDetails();
-        return ResponseEntity.ok(new String("HEEEE"));
-    }
-
-    @PostMapping("/cof")
-    public ResponseEntity<String> createCof(@Valid @RequestBody CofRequest cofRequest) throws Exception {
-        return ResponseEntity.ok(paymentService.createCof(cofRequest));
-    }
-
-    @PostMapping("/token-purchase")
-    public ResponseEntity<String> postMethodName(@Valid @RequestBody PurchaseTokenRequest purchaseTokenRequest) throws Exception {
-        return ResponseEntity.ok(paymentService.processPayment(purchaseTokenRequest));
-    }
-
 }
