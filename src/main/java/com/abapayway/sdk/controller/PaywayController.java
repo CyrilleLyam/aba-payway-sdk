@@ -43,7 +43,7 @@ public class PaywayController {
     }
 
     @PostMapping("/list-transactions")
-    public ResponseEntity<?> listTransaction(@Valid @RequestBody ListTransactionRequest listTransactionRequest) throws Exception {
+    public ResponseEntity<?> listTransactions(@Valid @RequestBody ListTransactionRequest listTransactionRequest) throws Exception {
         try{
             return ResponseEntity.ok(paymentService.listTransaction(listTransactionRequest));
         }catch(Exception e){
