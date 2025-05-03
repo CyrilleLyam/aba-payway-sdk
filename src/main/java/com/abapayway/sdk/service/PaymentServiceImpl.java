@@ -1,8 +1,11 @@
 package com.abapayway.sdk.service;
 
 import com.abapayway.sdk.config.PaywayProperties;
+import com.abapayway.sdk.dto.request.ExchangeRateRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
 import com.abapayway.sdk.util.SignatureUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import kong.unirest.HttpResponse;
 import kong.unirest.MultipartBody;
 import kong.unirest.Unirest;
@@ -12,6 +15,7 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 @Service
 public class PaymentServiceImpl implements PaymentService {
     private final PaywayProperties props;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public PaymentServiceImpl(PaywayProperties props) {
         this.props = props;
@@ -87,4 +91,26 @@ public class PaymentServiceImpl implements PaymentService {
                 ? response.getHeaders().getFirst("Location")
                 : response.getBody();
     }
+
+    @Override
+    public String getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception {
+        String reqTime = exchangeRateRequest.getReqTime();
+        String merchantId = props.getMerchantId();
+
+        String b4hash = reqTime + merchantId;
+        String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("req_time", reqTime);
+        body.put("merchant_id", merchantId);
+        body.put("hash", hash);
+
+        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/exchange-rate")
+                .header("Content-Type", "application/json")
+                .body(body.toString())
+                .asString();
+
+        return response.getBody();
+    }
+
 }

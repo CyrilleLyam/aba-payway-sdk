@@ -1,5 +1,6 @@
 package com.abapayway.sdk.controller;
 
+import com.abapayway.sdk.dto.request.ExchangeRateRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
 import com.abapayway.sdk.dto.response.PaywayResponse;
 import com.abapayway.sdk.service.PaymentService;
@@ -21,5 +22,10 @@ public class PaywayController {
     @PostMapping("/create-transaction")
     public ResponseEntity<String> createTransaction(@Valid @RequestBody PurchaseRequest purchaseRequest) throws Exception {
         return ResponseEntity.ok(paymentService.createTransaction(purchaseRequest));
+    }
+
+    @PostMapping("/exchange-rate")
+    public ResponseEntity<String> getExchangeRate(@Valid @RequestBody ExchangeRateRequest exchangeRateRequest) throws Exception {
+        return ResponseEntity.ok(paymentService.getExchangeRate(exchangeRateRequest));
     }
 }
