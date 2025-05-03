@@ -189,12 +189,7 @@ public class PaymentServiceImpl implements PaymentService {
         body.put("merchant_id", merchantId);
         body.put("hash", hash);
 
-        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/exchange-rate")
-                .header("Content-Type", "application/json")
-                .body(body.toString())
-                .asString();
-
-        return objectMapper.readTree(response.getBody());
+        return sendJsonTo("api/payment-gateway/v1/exchange-rate", body);
     }
 
     @Override
@@ -211,12 +206,14 @@ public class PaymentServiceImpl implements PaymentService {
         body.put("tran_id", tranId);
         body.put("hash", hash);
 
-        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/payments/close-transaction")
+        return sendJsonTo("api/payment-gateway/v1/payments/close-transaction", body);
+    }
+
+    private JsonNode sendJsonTo(String endpoint, ObjectNode body) throws Exception {
+        HttpResponse<String> response = Unirest.post(endpoint)
                 .header("Content-Type", "application/json")
                 .body(body.toString())
                 .asString();
-
         return objectMapper.readTree(response.getBody());
     }
-
 }
