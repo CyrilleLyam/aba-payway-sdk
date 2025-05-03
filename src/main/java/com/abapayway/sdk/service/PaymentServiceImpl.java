@@ -4,6 +4,7 @@ import com.abapayway.sdk.config.PaywayProperties;
 import com.abapayway.sdk.dto.request.ExchangeRateRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
 import com.abapayway.sdk.util.SignatureUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import kong.unirest.HttpResponse;
@@ -22,7 +23,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public String createTransaction(PurchaseRequest request) throws Exception {
+    public Object createTransaction(PurchaseRequest request) throws Exception {
         String reqTime = defaultString(request.getReqTime());
         String merchantId = props.getMerchantId();
         String tranId = defaultString(request.getTranId());
@@ -89,11 +90,11 @@ public class PaymentServiceImpl implements PaymentService {
         String contentType = response.getHeaders().getFirst("Content-Type");
         return contentType.equalsIgnoreCase("text/html; charset=utf-8")
                 ? response.getHeaders().getFirst("Location")
-                : response.getBody();
+                : objectMapper.readTree(response.getBody());
     }
 
     @Override
-    public String getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception {
+    public JsonNode getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception {
         String reqTime = exchangeRateRequest.getReqTime();
         String merchantId = props.getMerchantId();
 
@@ -110,7 +111,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .body(body.toString())
                 .asString();
 
-        return response.getBody();
+        return objectMapper.readTree(response.getBody());
     }
 
 }

@@ -2,10 +2,9 @@ package com.abapayway.sdk.controller;
 
 import com.abapayway.sdk.dto.request.ExchangeRateRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
-import com.abapayway.sdk.dto.response.PaywayResponse;
 import com.abapayway.sdk.service.PaymentService;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +19,12 @@ public class PaywayController {
     }
 
     @PostMapping("/create-transaction")
-    public ResponseEntity<String> createTransaction(@Valid @RequestBody PurchaseRequest purchaseRequest) throws Exception {
+    public ResponseEntity<Object> createTransaction(@Valid @RequestBody PurchaseRequest purchaseRequest) throws Exception {
         return ResponseEntity.ok(paymentService.createTransaction(purchaseRequest));
     }
 
     @PostMapping("/exchange-rate")
-    public ResponseEntity<String> getExchangeRate(@Valid @RequestBody ExchangeRateRequest exchangeRateRequest) throws Exception {
+    public ResponseEntity<JsonNode> getExchangeRate(@Valid @RequestBody ExchangeRateRequest exchangeRateRequest) throws Exception {
         return ResponseEntity.ok(paymentService.getExchangeRate(exchangeRateRequest));
     }
 }

@@ -2,9 +2,10 @@ package com.abapayway.sdk.service;
 
 import com.abapayway.sdk.dto.request.ExchangeRateRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public interface PaymentService {
-    String createTransaction(PurchaseRequest purchaseRequest) throws Exception;
+    Object createTransaction(PurchaseRequest purchaseRequest) throws Exception;
 
-    String getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception;
+    JsonNode getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception;
 }
