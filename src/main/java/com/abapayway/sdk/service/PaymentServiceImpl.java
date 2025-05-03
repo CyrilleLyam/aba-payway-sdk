@@ -1,8 +1,9 @@
 package com.abapayway.sdk.service;
 
 import com.abapayway.sdk.config.PaywayProperties;
-import com.abapayway.sdk.dto.request.ExchangeRateRequest;
-import com.abapayway.sdk.dto.request.PurchaseRequest;
+import com.abapayway.sdk.dto.request.*;
+import com.abapayway.sdk.dto.response.CheckTransactionResponse;
+import com.abapayway.sdk.dto.response.transaction.TransactionResponse;
 import com.abapayway.sdk.util.SignatureUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +11,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import kong.unirest.HttpResponse;
 import kong.unirest.MultipartBody;
 import kong.unirest.Unirest;
+import kong.unirest.json.JSONObject;
+
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import java.util.UUID;
+
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 @Service
@@ -91,6 +104,78 @@ public class PaymentServiceImpl implements PaymentService {
         return contentType.equalsIgnoreCase("text/html; charset=utf-8")
                 ? response.getHeaders().getFirst("Location")
                 : objectMapper.readTree(response.getBody());
+    }
+
+
+    @Override
+    public CheckTransactionResponse checkTransaction(CheckTransactionRequest checkTransactionRequest) throws Exception{
+        String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String merchantId = props.getMerchantId();
+        String tranId = checkTransactionRequest.getTranId();
+        String b4hash = reqTime+merchantId+tranId;
+        String hash =  SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
+
+        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/payments/check-transaction-2")
+        .header("Content-Type", "application/json")
+        .body(new JSONObject()
+                .put("req_time", reqTime)
+                .put("tran_id", tranId)
+                .put("merchant_id", merchantId)
+                .put("hash", hash)
+                .toString())
+        .asString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        CheckTransactionResponse responseObject = objectMapper.readValue(response.getBody(), CheckTransactionResponse.class);
+    
+        // Check the status code
+        if (!"00".equals(responseObject.getStatus().getCode())) {
+            throw new Exception("Error: " + responseObject.getStatus().getMessage() + 
+                                ", Transaction ID: " + responseObject.getStatus().getTranId());
+        }
+    
+        return responseObject;
+    }
+
+    @Override 
+    public TransactionResponse listTransactions(ListTransactionRequest listTransactionRequest) throws Exception{
+        String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String merchantId = props.getMerchantId();
+        String fromDate = listTransactionRequest.getFromDate() == null ? "": listTransactionRequest.getFromDate();
+        String toDate = listTransactionRequest.getToDate() == null ? "" : listTransactionRequest.getToDate();
+        String fromAmount = listTransactionRequest.getFromAmount();
+        String toAmount = listTransactionRequest.getToAmount();
+        String status = listTransactionRequest.getStatus() == null ? "" : listTransactionRequest.getStatus();
+        String page = listTransactionRequest.getPage();
+        String pagination = listTransactionRequest.getPagination();
+        
+        String b4hash = reqTime+merchantId+fromDate+toDate+fromAmount+toAmount+status+page+pagination;
+        String hash =  SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
+        
+        JSONObject body = new JSONObject();
+        body.put("req_time", reqTime);
+        body.put("merchant_id", merchantId);
+        body.put("from_date", fromDate);
+        body.put("to_date", toDate);
+        body.put("from_amount", fromAmount);
+        body.put("to_amount", toAmount);
+        body.put("page", page);
+        body.put("pagination", pagination);
+        body.put("status", status);
+        body.put("hash", hash);
+
+        
+        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/payments/transaction-list-2")
+        .header("Content-Type", "application/json")
+        .body(body.toString())
+        .asString();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        TransactionResponse transactionResponse = objectMapper.readValue(response.getBody(), TransactionResponse.class);
+        if (transactionResponse.getStatus().getCode().equals("00")) {
+            return transactionResponse;
+        } else {
+            throw new Exception("Error from API: " + transactionResponse.getStatus().getMessage());
+        }
     }
 
     @Override
