@@ -1,12 +1,18 @@
 package com.abapayway.sdk.controller;
-
+import com.abapayway.sdk.dto.request.CheckTransactionRequest;
+import com.abapayway.sdk.dto.request.CofRequest;
+import com.abapayway.sdk.dto.request.ListTransactionRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
-import com.abapayway.sdk.dto.response.PaywayResponse;
+import com.abapayway.sdk.dto.request.PurchaseTokenRequest;
+import com.abapayway.sdk.dto.response.CheckTransactionResponse;
 import com.abapayway.sdk.service.PaymentService;
+
 import jakarta.validation.Valid;
-import org.springframework.http.MediaType;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/payway")
@@ -22,4 +28,46 @@ public class PaywayController {
     public ResponseEntity<String> createTransaction(@Valid @RequestBody PurchaseRequest purchaseRequest) throws Exception {
         return ResponseEntity.ok(paymentService.createTransaction(purchaseRequest));
     }
+
+    @PostMapping("/check-transaction")
+    public ResponseEntity<?> checkTransaction(@Valid @RequestBody CheckTransactionRequest checkTransactionRequest) throws Exception {
+        try {
+            CheckTransactionResponse response = paymentService.checkTransaction(checkTransactionRequest);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of(
+                "error", "Transaction Error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/list-transaction")
+    public ResponseEntity<?> listTransaction(@Valid @RequestBody ListTransactionRequest listTransactionRequest) throws Exception {
+        try{
+            return ResponseEntity.ok(paymentService.listTransaction(listTransactionRequest));
+        }catch(Exception e){
+            return ResponseEntity.status(400).body(Map.of(
+                "error", "Transaction Error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/account-details")
+    public ResponseEntity<String> accountDetails() throws Exception {
+        paymentService.accountDetails();
+        return ResponseEntity.ok(new String("HEEEE"));
+    }
+
+    @PostMapping("/cof")
+    public ResponseEntity<String> createCof(@Valid @RequestBody CofRequest cofRequest) throws Exception {
+        return ResponseEntity.ok(paymentService.createCof(cofRequest));
+    }
+
+    @PostMapping("/token-purchase")
+    public ResponseEntity<String> postMethodName(@Valid @RequestBody PurchaseTokenRequest purchaseTokenRequest) throws Exception {
+        return ResponseEntity.ok(paymentService.processPayment(purchaseTokenRequest));
+    }
+
 }

@@ -1,9 +1,16 @@
 package com.abapayway.sdk.dto.response;
 
-public class Status {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+public class Status {
+    
+    @JsonProperty("code")
     private String code;
+
+    @JsonProperty("message")
     private String message;
+
+    @JsonProperty("tran_id")
     private String tranId;
 
     public String getCode() {
