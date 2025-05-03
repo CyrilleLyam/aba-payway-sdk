@@ -62,9 +62,8 @@ public class PaywayController {
     }
 
     @PostMapping("/refund")
-    public String refundTransaction(@Valid @RequestBody RefundTransactionRequest refundTransactionRequest) throws Exception {
-        paymentService.refundTransaction(refundTransactionRequest);
-        return new String("JIIII");
+    public ResponseEntity<JsonNode> refundTransaction(@Valid @RequestBody RefundTransactionRequest refundTransactionRequest) throws Exception {
+        return ResponseEntity.ok(paymentService.refundTransaction(refundTransactionRequest));
     }
     @PostMapping("/close-transaction")
     public ResponseEntity<JsonNode> closeTransaction(@Valid @RequestBody CloseTransactionRequest closeTransactionRequest) throws Exception {

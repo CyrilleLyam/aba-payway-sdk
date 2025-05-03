@@ -15,6 +15,6 @@ public interface PaymentService {
     CheckTransactionResponse checkTransaction(CheckTransactionRequest checkTransactionRequest) throws Exception;
     TransactionResponse listTransactions(ListTransactionRequest listTransactionRequest) throws Exception;
     JsonNode getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception;
-    void refundTransaction(RefundTransactionRequest refundTransactionRequest) throws Exception;
+    JsonNode refundTransaction(RefundTransactionRequest refundTransactionRequest) throws Exception;
     JsonNode closeTransaction(CloseTransactionRequest closeTransactionRequest) throws Exception;
 }

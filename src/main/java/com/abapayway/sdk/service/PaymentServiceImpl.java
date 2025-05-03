@@ -196,16 +196,8 @@ public class PaymentServiceImpl implements PaymentService {
         ));
     }
 
-    private JsonNode sendJsonTo(String endpoint, ObjectNode body) throws Exception {
-        HttpResponse<String> response = Unirest.post(endpoint)
-                .header("Content-Type", "application/json")
-                .body(body.toString())
-                .asString();
-        return objectMapper.readTree(response.getBody());
-    }
-
     @Override
-    public void refundTransaction(RefundTransactionRequest refundTransactionRequest) throws Exception{
+    public JsonNode refundTransaction(RefundTransactionRequest refundTransactionRequest) throws Exception{
         String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String merchantId = props.getMerchantId();
         String amount = refundTransactionRequest.getAmount();
@@ -216,20 +208,22 @@ public class PaymentServiceImpl implements PaymentService {
         String b4hash = reqTime+merchantId+merchantAuth;
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
 
-        JSONObject body = new JSONObject();
-        body.put("request_time", reqTime);
-        body.put("merchant_id", merchantId);
-        body.put("merchant_auth", merchantAuth);
-        body.put("hash", hash);
-
-        
-        HttpResponse<String> response = Unirest.post("api/merchant-portal/merchant-access/online-transaction/refund")
-        .header("Content-Type", "application/json")
-        .body(body.toString())
-        .asString();
-
-        System.out.println("RES == "+response.getBody());
+        return sendJsonTo("api/merchant-portal/merchant-access/online-transaction/refund", createJsonBody(
+            "request_time", reqTime,
+            "merchant_id", merchantId,
+            "merchant_auth", merchantAuth,
+            "hash",hash
+        ));
     }
+
+    private JsonNode sendJsonTo(String endpoint, ObjectNode body) throws Exception {
+        HttpResponse<String> response = Unirest.post(endpoint)
+                .header("Content-Type", "application/json")
+                .body(body.toString())
+                .asString();
+        return objectMapper.readTree(response.getBody());
+    }
+
     private ObjectNode createJsonBody(Object... keyValuePairs) {
         ObjectNode body = objectMapper.createObjectNode();
         for (int i = 0; i < keyValuePairs.length; i += 2) {
