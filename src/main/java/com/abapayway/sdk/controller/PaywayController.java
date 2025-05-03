@@ -1,10 +1,12 @@
 package com.abapayway.sdk.controller;
+
 import com.abapayway.sdk.dto.request.*;
 import com.abapayway.sdk.dto.response.CheckTransactionResponse;
 import com.abapayway.sdk.service.PaymentService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
+
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -33,20 +35,20 @@ public class PaywayController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(400).body(Map.of(
-                "error", "Transaction Error",
-                "message", e.getMessage()
+                    "error", "Transaction Error",
+                    "message", e.getMessage()
             ));
         }
     }
 
     @PostMapping("/list-transactions")
     public ResponseEntity<?> listTransactions(@Valid @RequestBody ListTransactionRequest listTransactionRequest) throws Exception {
-        try{
+        try {
             return ResponseEntity.ok(paymentService.listTransactions(listTransactionRequest));
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(400).body(Map.of(
-                "error", "Transaction Error",
-                "message", e.getMessage()
+                    "error", "Transaction Error",
+                    "message", e.getMessage()
             ));
         }
     }
@@ -54,6 +56,11 @@ public class PaywayController {
     @PostMapping("/exchange-rate")
     public ResponseEntity<JsonNode> getExchangeRate(@Valid @RequestBody ExchangeRateRequest exchangeRateRequest) throws Exception {
         return ResponseEntity.ok(paymentService.getExchangeRate(exchangeRateRequest));
+    }
+
+    @PostMapping("/close-transaction")
+    public ResponseEntity<JsonNode> closeTransaction(@Valid @RequestBody CloseTransactionRequest closeTransactionRequest) throws Exception {
+        return ResponseEntity.ok(paymentService.closeTransaction(closeTransactionRequest));
     }
 
 }
