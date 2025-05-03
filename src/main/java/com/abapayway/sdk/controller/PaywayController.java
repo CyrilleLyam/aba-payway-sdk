@@ -1,12 +1,9 @@
 package com.abapayway.sdk.controller;
-import com.abapayway.sdk.dto.request.CheckTransactionRequest;
-import com.abapayway.sdk.dto.request.CofRequest;
-import com.abapayway.sdk.dto.request.ListTransactionRequest;
-import com.abapayway.sdk.dto.request.PurchaseRequest;
-import com.abapayway.sdk.dto.request.PurchaseTokenRequest;
+import com.abapayway.sdk.dto.request.*;
 import com.abapayway.sdk.dto.response.CheckTransactionResponse;
 import com.abapayway.sdk.service.PaymentService;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import java.util.Map;
 
@@ -45,13 +42,18 @@ public class PaywayController {
     @PostMapping("/list-transactions")
     public ResponseEntity<?> listTransactions(@Valid @RequestBody ListTransactionRequest listTransactionRequest) throws Exception {
         try{
-            return ResponseEntity.ok(paymentService.listTransaction(listTransactionRequest));
+            return ResponseEntity.ok(paymentService.listTransactions(listTransactionRequest));
         }catch(Exception e){
             return ResponseEntity.status(400).body(Map.of(
                 "error", "Transaction Error",
                 "message", e.getMessage()
             ));
         }
+    }
+
+    @PostMapping("/exchange-rate")
+    public ResponseEntity<JsonNode> getExchangeRate(@Valid @RequestBody ExchangeRateRequest exchangeRateRequest) throws Exception {
+        return ResponseEntity.ok(paymentService.getExchangeRate(exchangeRateRequest));
     }
 
 }

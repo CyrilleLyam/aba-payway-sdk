@@ -1,11 +1,7 @@
 package com.abapayway.sdk.service;
 
 import com.abapayway.sdk.config.PaywayProperties;
-import com.abapayway.sdk.dto.request.CheckTransactionRequest;
-import com.abapayway.sdk.dto.request.CofRequest;
-import com.abapayway.sdk.dto.request.ListTransactionRequest;
-import com.abapayway.sdk.dto.request.PurchaseRequest;
-import com.abapayway.sdk.dto.request.PurchaseTokenRequest;
+import com.abapayway.sdk.dto.request.*;
 import com.abapayway.sdk.dto.response.CheckTransactionResponse;
 import com.abapayway.sdk.dto.response.transaction.TransactionResponse;
 import com.abapayway.sdk.util.SignatureUtil;
@@ -28,24 +24,48 @@ import java.util.Map;
 
 import java.util.UUID;
 
+import static org.apache.commons.lang3.StringUtils.defaultString;
+
 @Service
 public class PaymentServiceImpl implements PaymentService {
     private final PaywayProperties props;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public PaymentServiceImpl(PaywayProperties props) {
         this.props = props;
     }
 
     @Override
-    public String createTransaction(PurchaseRequest request) throws Exception {
-        String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-        String tranId = request.getTranId();
-        String amount = request.getAmount();
-        String paymentOption = request.getPaymentOption();
-        String returnUrl = request.getReturnUrl();
-        String continueUrlSuccess = request.getContinueSuccessUrl();
-        String returnParams = "ABA_2025";
-        String b4hash = reqTime + props.getMerchantId() + tranId + amount + paymentOption+ returnUrl+continueUrlSuccess+returnParams;
+    public Object createTransaction(PurchaseRequest request) throws Exception {
+        String reqTime = defaultString(request.getReqTime());
+        String merchantId = props.getMerchantId();
+        String tranId = defaultString(request.getTranId());
+        String amount = defaultString(request.getAmount());
+        String items = defaultString(request.getItems());
+        String shipping = defaultString(request.getShipping());
+        String firstname = defaultString(request.getFirstname());
+        String lastname = defaultString(request.getLastname());
+        String email = defaultString(request.getEmail());
+        String phone = defaultString(request.getPhone());
+        String type = defaultString(request.getType());
+        String paymentOption = defaultString(request.getPaymentOption());
+        String returnUrl = defaultString(request.getReturnUrl());
+        String cancelUrl = defaultString(request.getCancelUrl());
+        String continueSuccessUrl = defaultString(request.getContinueSuccessUrl());
+        String returnDeeplink = defaultString(request.getReturnDeeplink());
+        String currency = defaultString(request.getCurrency());
+        String customFields = defaultString(request.getCustomFields());
+        String returnParams = defaultString(request.getReturnParams());
+        String payout = defaultString(request.getPayout());
+        String lifetime = defaultString(request.getLifetime());
+        String additionalParams = defaultString(request.getAdditionalParams());
+        String googlePayToken = defaultString(request.getGooglePayToken());
+
+        String b4hash = reqTime + merchantId + tranId + amount + items + shipping +
+                firstname + lastname + email + phone + type + paymentOption + returnUrl + cancelUrl +
+                continueSuccessUrl + returnDeeplink + currency + customFields + returnParams + payout +
+                lifetime + additionalParams + googlePayToken;
+
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
 
         MultipartBody requestBody = Unirest.post("api/payment-gateway/v1/payments/purchase")
@@ -55,10 +75,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .field("merchant_id", merchantId)
                 .field("tran_id", tranId)
                 .field("amount", amount)
-                .field("payment_option", paymentOption)
-                .field("return_url", returnUrl)
-                .field("continue_success_url", continueUrlSuccess)
-                .field("return_params", returnParams)
                 .field("hash", hash);
 
         if (items != null && !items.isEmpty()) requestBody.field("items", items);
@@ -85,11 +101,11 @@ public class PaymentServiceImpl implements PaymentService {
 
         HttpResponse<String> response = requestBody.asString();
         String contentType = response.getHeaders().getFirst("Content-Type");
-        if ("text/html; charset=utf-8".equalsIgnoreCase(contentType)) {
-            return response.getHeaders().getFirst("Location");
-        }
-        return response.getBody();
+        return contentType.equalsIgnoreCase("text/html; charset=utf-8")
+                ? response.getHeaders().getFirst("Location")
+                : objectMapper.readTree(response.getBody());
     }
+
 
     @Override
     public CheckTransactionResponse checkTransaction(CheckTransactionRequest checkTransactionRequest) throws Exception{
@@ -161,4 +177,26 @@ public class PaymentServiceImpl implements PaymentService {
             throw new Exception("Error from API: " + transactionResponse.getStatus().getMessage());
         }
     }
+
+    @Override
+    public JsonNode getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception {
+        String reqTime = exchangeRateRequest.getReqTime();
+        String merchantId = props.getMerchantId();
+
+        String b4hash = reqTime + merchantId;
+        String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("req_time", reqTime);
+        body.put("merchant_id", merchantId);
+        body.put("hash", hash);
+
+        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/exchange-rate")
+                .header("Content-Type", "application/json")
+                .body(body.toString())
+                .asString();
+
+        return objectMapper.readTree(response.getBody());
+    }
+
 }
