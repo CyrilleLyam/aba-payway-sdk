@@ -107,73 +107,60 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public CheckTransactionResponse checkTransaction(CheckTransactionRequest checkTransactionRequest) throws Exception {
-        String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String reqTime = checkTransactionRequest.getReqTime();
         String merchantId = props.getMerchantId();
         String tranId = checkTransactionRequest.getTranId();
         String b4hash = reqTime + merchantId + tranId;
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
 
-        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/payments/check-transaction-2")
-                .header("Content-Type", "application/json")
-                .body(new JSONObject()
-                        .put("req_time", reqTime)
-                        .put("tran_id", tranId)
-                        .put("merchant_id", merchantId)
-                        .put("hash", hash)
-                        .toString())
-                .asString();
-        ObjectMapper objectMapper = new ObjectMapper();
-        CheckTransactionResponse responseObject = objectMapper.readValue(response.getBody(), CheckTransactionResponse.class);
+        ObjectNode body = createJsonBody(
+                "req_time", reqTime,
+                "merchant_id", merchantId,
+                "tran_id", tranId,
+                "hash", hash
+        );
 
-        // Check the status code
-        if (!"00".equals(responseObject.getStatus().getCode())) {
-            throw new Exception("Error: " + responseObject.getStatus().getMessage() +
-                    ", Transaction ID: " + responseObject.getStatus().getTranId());
-        }
-
-        return responseObject;
+        JsonNode jsonResponse = sendJsonTo("api/payment-gateway/v1/payments/check-transaction-2", body);
+        return objectMapper.treeToValue(jsonResponse, CheckTransactionResponse.class);
     }
 
     @Override
     public TransactionResponse listTransactions(ListTransactionRequest listTransactionRequest) throws Exception {
         String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String merchantId = props.getMerchantId();
-        String fromDate = listTransactionRequest.getFromDate() == null ? "" : listTransactionRequest.getFromDate();
-        String toDate = listTransactionRequest.getToDate() == null ? "" : listTransactionRequest.getToDate();
-        String fromAmount = listTransactionRequest.getFromAmount();
-        String toAmount = listTransactionRequest.getToAmount();
-        String status = listTransactionRequest.getStatus() == null ? "" : listTransactionRequest.getStatus();
-        String page = listTransactionRequest.getPage();
-        String pagination = listTransactionRequest.getPagination();
+
+        String fromDate = defaultString(listTransactionRequest.getFromDate());
+        String toDate = defaultString(listTransactionRequest.getToDate());
+        String fromAmount = defaultString(listTransactionRequest.getFromAmount());
+        String toAmount = defaultString(listTransactionRequest.getToAmount());
+        String status = defaultString(listTransactionRequest.getStatus());
+        String page = defaultString(listTransactionRequest.getPage());
+        String pagination = defaultString(listTransactionRequest.getPagination());
 
         String b4hash = reqTime + merchantId + fromDate + toDate + fromAmount + toAmount + status + page + pagination;
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
 
-        JSONObject body = new JSONObject();
-        body.put("req_time", reqTime);
-        body.put("merchant_id", merchantId);
-        body.put("from_date", fromDate);
-        body.put("to_date", toDate);
-        body.put("from_amount", fromAmount);
-        body.put("to_amount", toAmount);
-        body.put("page", page);
-        body.put("pagination", pagination);
-        body.put("status", status);
-        body.put("hash", hash);
+        ObjectNode body = createJsonBody(
+                "req_time", reqTime,
+                "merchant_id", merchantId,
+                "from_date", fromDate,
+                "to_date", toDate,
+                "from_amount", fromAmount,
+                "to_amount", toAmount,
+                "page", page,
+                "pagination", pagination,
+                "status", status,
+                "hash", hash
+        );
 
+        JsonNode jsonResponse = sendJsonTo("api/payment-gateway/v1/payments/transaction-list-2", body);
+        TransactionResponse response = objectMapper.treeToValue(jsonResponse, TransactionResponse.class);
 
-        HttpResponse<String> response = Unirest.post("api/payment-gateway/v1/payments/transaction-list-2")
-                .header("Content-Type", "application/json")
-                .body(body.toString())
-                .asString();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        TransactionResponse transactionResponse = objectMapper.readValue(response.getBody(), TransactionResponse.class);
-        if (transactionResponse.getStatus().getCode().equals("00")) {
-            return transactionResponse;
-        } else {
-            throw new Exception("Error from API: " + transactionResponse.getStatus().getMessage());
+        if (!"00".equals(response.getStatus().getCode())) {
+            throw new Exception("Error from API: " + response.getStatus().getMessage());
         }
+
+        return response;
     }
 
     @Override
