@@ -4,6 +4,8 @@ import com.abapayway.sdk.config.PaywayProperties;
 import com.abapayway.sdk.dto.request.*;
 import com.abapayway.sdk.dto.response.CheckTransactionResponse;
 import com.abapayway.sdk.dto.response.transaction.TransactionResponse;
+import com.abapayway.sdk.util.MerchantAuthUtil;
+import com.abapayway.sdk.util.RSAUtil;
 import com.abapayway.sdk.util.SignatureUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,7 @@ import kong.unirest.json.JSONObject;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.security.PublicKey;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -199,4 +202,30 @@ public class PaymentServiceImpl implements PaymentService {
         return objectMapper.readTree(response.getBody());
     }
 
+    @Override
+    public void refundTransaction(RefundTransactionRequest refundTransactionRequest) throws Exception{
+        String reqTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String merchantId = props.getMerchantId();
+        String amount = refundTransactionRequest.getAmount();
+        String tranId = refundTransactionRequest.getTranId();
+        
+        PublicKey rsaPublicKey = RSAUtil.loadPublicKey(props.getPublicKey());
+        String merchantAuth = MerchantAuthUtil.encryptMerchantAuth(merchantId, tranId, amount, rsaPublicKey);
+        String b4hash = reqTime+merchantId+merchantAuth;
+        String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
+
+        JSONObject body = new JSONObject();
+        body.put("request_time", reqTime);
+        body.put("merchant_id", merchantId);
+        body.put("merchant_auth", merchantAuth);
+        body.put("hash", hash);
+
+        
+        HttpResponse<String> response = Unirest.post("api/merchant-portal/merchant-access/online-transaction/refund")
+        .header("Content-Type", "application/json")
+        .body(body.toString())
+        .asString();
+
+        System.out.println("RES == "+response.getBody());
+    }
 }

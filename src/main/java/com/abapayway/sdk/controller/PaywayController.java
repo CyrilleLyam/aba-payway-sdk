@@ -9,6 +9,9 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 @RestController
@@ -54,6 +57,12 @@ public class PaywayController {
     @PostMapping("/exchange-rate")
     public ResponseEntity<JsonNode> getExchangeRate(@Valid @RequestBody ExchangeRateRequest exchangeRateRequest) throws Exception {
         return ResponseEntity.ok(paymentService.getExchangeRate(exchangeRateRequest));
+    }
+
+    @PostMapping("/refund")
+    public String refundTransaction(@Valid @RequestBody RefundTransactionRequest refundTransactionRequest) throws Exception {
+        paymentService.refundTransaction(refundTransactionRequest);
+        return new String("JIIII");
     }
 
 }

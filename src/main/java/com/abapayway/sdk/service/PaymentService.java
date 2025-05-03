@@ -4,6 +4,7 @@ import com.abapayway.sdk.dto.request.CheckTransactionRequest;
 import com.abapayway.sdk.dto.request.ExchangeRateRequest;
 import com.abapayway.sdk.dto.request.ListTransactionRequest;
 import com.abapayway.sdk.dto.request.PurchaseRequest;
+import com.abapayway.sdk.dto.request.RefundTransactionRequest;
 import com.abapayway.sdk.dto.response.CheckTransactionResponse;
 import com.abapayway.sdk.dto.response.transaction.TransactionResponse;
 import com.fasterxml.jackson.databind.JsonNode;;
@@ -13,4 +14,5 @@ public interface PaymentService {
     CheckTransactionResponse checkTransaction(CheckTransactionRequest checkTransactionRequest) throws Exception;
     TransactionResponse listTransactions(ListTransactionRequest listTransactionRequest) throws Exception;
     JsonNode getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception;
+    void refundTransaction(RefundTransactionRequest refundTransactionRequest) throws Exception;
 }
