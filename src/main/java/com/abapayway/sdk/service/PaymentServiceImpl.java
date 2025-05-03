@@ -180,16 +180,14 @@ public class PaymentServiceImpl implements PaymentService {
     public JsonNode getExchangeRate(ExchangeRateRequest exchangeRateRequest) throws Exception {
         String reqTime = exchangeRateRequest.getReqTime();
         String merchantId = props.getMerchantId();
-
         String b4hash = reqTime + merchantId;
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
 
-        ObjectNode body = objectMapper.createObjectNode();
-        body.put("req_time", reqTime);
-        body.put("merchant_id", merchantId);
-        body.put("hash", hash);
-
-        return sendJsonTo("api/payment-gateway/v1/exchange-rate", body);
+        return sendJsonTo("api/payment-gateway/v1/exchange-rate", createJsonBody(
+                "req_time", reqTime,
+                "merchant_id", merchantId,
+                "hash", hash
+        ));
     }
 
     @Override
@@ -200,13 +198,12 @@ public class PaymentServiceImpl implements PaymentService {
         String b4hash = reqTime + merchantId + tranId;
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
 
-        ObjectNode body = objectMapper.createObjectNode();
-        body.put("req_time", reqTime);
-        body.put("merchant_id", merchantId);
-        body.put("tran_id", tranId);
-        body.put("hash", hash);
-
-        return sendJsonTo("api/payment-gateway/v1/payments/close-transaction", body);
+        return sendJsonTo("api/payment-gateway/v1/payments/close-transaction", createJsonBody(
+                "req_time", reqTime,
+                "merchant_id", merchantId,
+                "tran_id", tranId,
+                "hash", hash
+        ));
     }
 
     private JsonNode sendJsonTo(String endpoint, ObjectNode body) throws Exception {
@@ -215,5 +212,15 @@ public class PaymentServiceImpl implements PaymentService {
                 .body(body.toString())
                 .asString();
         return objectMapper.readTree(response.getBody());
+    }
+
+    private ObjectNode createJsonBody(Object... keyValuePairs) {
+        ObjectNode body = objectMapper.createObjectNode();
+        for (int i = 0; i < keyValuePairs.length; i += 2) {
+            String key = (String) keyValuePairs[i];
+            String value = (String) keyValuePairs[i + 1];
+            body.put(key, value == null ? "" : value);
+        }
+        return body;
     }
 }
