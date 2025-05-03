@@ -10,7 +10,10 @@ import java.util.Base64;
 public class RSAUtil {
     // Load private key
     public static PrivateKey loadPrivateKey(String privateKeyPEM) throws Exception {
-        String privateKeyPEMCleaned = privateKeyPEM.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "");
+        String privateKeyPEMCleaned = privateKeyPEM
+            .replace("-----BEGIN PRIVATE KEY-----", "")
+            .replace("-----END PRIVATE KEY-----", "")
+            .replaceAll("\\s", ""); // Remove all whitespace (spaces, newlines, tabs, etc.)
 
         byte[] encoded = Base64.getDecoder().decode(privateKeyPEMCleaned);
 
