@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/payway")
+@RequestMapping("/")
 public class PaywayController {
 
     private final PaymentService paymentService;
@@ -25,7 +25,7 @@ public class PaywayController {
     }
 
     @PostMapping("/create-transaction")
-    public ResponseEntity<String> createTransaction(@Valid @RequestBody PurchaseRequest purchaseRequest) throws Exception {
+    public ResponseEntity<Object> createTransaction(@Valid @RequestBody PurchaseRequest purchaseRequest) throws Exception {
         return ResponseEntity.ok(paymentService.createTransaction(purchaseRequest));
     }
 
@@ -42,7 +42,7 @@ public class PaywayController {
         }
     }
 
-    @PostMapping("/list-transaction")
+    @PostMapping("/list-transactions")
     public ResponseEntity<?> listTransaction(@Valid @RequestBody ListTransactionRequest listTransactionRequest) throws Exception {
         try{
             return ResponseEntity.ok(paymentService.listTransaction(listTransactionRequest));
