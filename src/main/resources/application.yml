@@ -9,5 +9,3 @@ payway:
   merchant-id: ${MERCHANT_ID}
   api-key: ${API_KEY}
   api-url: ${API_URL}
-  private-key: ${RSA_PRIVATE_KEY}  
-  public-key: ${RSA_PUBLIC_KEY} 

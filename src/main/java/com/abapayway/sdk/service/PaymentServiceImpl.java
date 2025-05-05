@@ -202,8 +202,8 @@ public class PaymentServiceImpl implements PaymentService {
         String merchantId = props.getMerchantId();
         String amount = refundTransactionRequest.getAmount();
         String tranId = refundTransactionRequest.getTranId();
-        
-        PublicKey rsaPublicKey = RSAUtil.loadPublicKey(props.getPublicKey());
+
+        PublicKey rsaPublicKey = RSAUtil.loadPublicKeyFromPEM("/keys/public_key.pem");
         String merchantAuth = MerchantAuthUtil.encryptMerchantAuth(merchantId, tranId, amount, rsaPublicKey);
         String b4hash = reqTime+merchantId+merchantAuth;
         String hash = SignatureUtil.generateHmacHash(b4hash, props.getApiKey());
