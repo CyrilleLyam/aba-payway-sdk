@@ -1,5 +1,6 @@
 package com.abapayway.sdk.config;
 
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ public class PaywayProperties {
     private String merchantId;
     private String apiKey;
     private String apiUrl;
+    
 
     public String getMerchantId() {
         return merchantId;
@@ -33,4 +35,5 @@ public class PaywayProperties {
     public void setApiUrl(String apiUrl) {
         this.apiUrl = apiUrl;
     }
+ 
 }
